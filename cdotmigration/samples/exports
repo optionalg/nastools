@@ -1,0 +1,3 @@
+# /etc/exports file
+/vol/vol1        -sec=sys,ro=192.168.1.1,root=192.168.1.1
+/vol/vol1/qtree1 -sec=sys,ro=192.168.1.1:192.168.1.2,rw=192.168.1.1:192.168.1.2,root=192.168.1.1:192.168.1.2

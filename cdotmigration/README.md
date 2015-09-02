@@ -13,14 +13,20 @@ simple rules:
 * errors will log to stderr
 * errors start with # to prevent accidential execution
 
-e.g.
+### sample
+
+samples/exports:
     
     # /etc/exports file
     /vol/vol1        -sec=sys,ro=192.168.1.1,root=192.168.1.1
     /vol/vol1/qtree1 -sec=sys,ro=192.168.1.1:192.168.1.2,rw=192.168.1.1:192.168.1.2,root=192.168.1.1:192.168.1.2
 
+run script:
+
     # run script for imaginary vserver vserver1
     ./genexportpolicy.py samples/exports vserver1
+
+output:
 
     # script output
     export-policy create -vserver vserver1 -policyname vol1

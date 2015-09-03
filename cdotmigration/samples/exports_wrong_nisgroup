@@ -1,0 +1,5 @@
+# /etc/exports file
+/vol/vol1               -sec=sys,ro=wrong_nisgroup,root=wrong_nisgroup
+/vol/vol1/qtree1        -sec=sys,ro=192.168.1.1:192.168.1.2,rw=192.168.1.1:192.168.1.2,root=192.168.1.1:192.168.1.2
+/vol/vol1/qtree1/folder -sec=sys,ro=wrong_nisgroup,rw=wrong_nisgroup,root=wrong_nisgroup
+

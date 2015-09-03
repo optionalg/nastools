@@ -1,6 +1,43 @@
 # cdotmigration
 some scripts that help migrating a 7-Mode NetApp to C-Dot
 
+
+## checkexporthosts.py
+
+The checkexporthosts.py script checks a NFS export file (/etc/exports) for non existant Hosts and Netgroups (NIS).
+
+simple rules:
+
+* outputs wrong hosts/netgroups including exports
+* errors will log to stderr
+* errors will start with # to prevent accidential execution
+
+### sample
+
+samples/exports_wrong_nisgroup:
+
+    # /etc/exports file
+    /vol/vol1               -sec=sys,ro=wrong_nisgroup,root=wrong_nisgroup
+    /vol/vol1/qtree1        -sec=sys,ro=192.168.1.1:192.168.1.2,rw=192.168.1.1:192.168.1.2,root=192.168.1.1:192.168.1.2
+    /vol/vol1/qtree1/folder -sec=sys,ro=wrong_nisgroup,rw=wrong_nisgroup,root=wrong_nisgroup
+
+run script:
+
+    # run script for imaginary export file samples/exports
+    ./checkexporthosts.py samples/exports_wrong_nisgroup
+
+output:
+
+    wrong_nisgroup ['/vol/vol1', '/vol/vol1/qtree1/folder']
+
+### usage
+    ./checkexporthosts.py EXPORTFILE
+
+### TODOs
+* missing support for @ notation for netgroups
+* missing unittests    
+
+
 ## genexportpolicy.py
 
 The genexportpolicy.py script transforms a NFS export file (/etc/exports) into NetApp C-Dot export-policys.
@@ -46,4 +83,3 @@ output:
 ### TODOs
 * probably missing ro rule for / (test / implement)
 * missing unittests
-

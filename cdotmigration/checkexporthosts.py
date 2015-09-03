@@ -73,6 +73,7 @@ if __name__ == "__main__":
         exportfile = sys.argv[1]
 
     commentline = re.compile('^#.*')
+    emptyline = re.compile('^$')
     exportsbyhost = {}
     exports = []
     hosts = []
@@ -81,7 +82,7 @@ if __name__ == "__main__":
         exportsraw = [line.strip() for line in f]
 
     for line in exportsraw:
-        if not commentline.match(line):
+        if not commentline.match(line) and not emptyline.match(line):
             exports.append(line)
 
     for elem in sorted(exports):
@@ -92,7 +93,7 @@ if __name__ == "__main__":
         try:
             exporthosts = gethostsinsecurity(parts[1])
         except Exception as e:
-            sys.stderr.write("%s\n")
+            sys.stderr.write("%s\n" % str(e))
         for host in exporthosts:
             if not host in hosts:
                 hosts.append(host)

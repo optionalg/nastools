@@ -90,6 +90,7 @@ if __name__ == "__main__":
         exportpath = parts[0]
         if not exportpath in exports:
             exports.append(exportpath)
+        exporthosts = []
         try:
             exporthosts = gethostsinsecurity(parts[1])
         except Exception as e:

@@ -15,7 +15,7 @@ def getexportpolicy(strexport):
         policyname = exportraw[2] + '_' + exportraw[3]
     return policyname
 
-def getexports(exportsfile):
+def getexports(exportfile):
     commentline = re.compile('^#.*')
     emptyline = re.compile('^$')
     exports = []

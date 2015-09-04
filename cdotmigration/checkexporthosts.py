@@ -44,7 +44,7 @@ def checkdns(host):
     else:
         return False
 
-def getexports(exportsfile):
+def getexports(exportfile):
     commentline = re.compile('^#.*')
     emptyline = re.compile('^$')
     exports = []

@@ -15,6 +15,18 @@ def getexportpolicy(strexport):
         policyname = exportraw[2] + '_' + exportraw[3]
     return policyname
 
+def getexports(exportsfile):
+    commentline = re.compile('^#.*')
+    emptyline = re.compile('^$')
+    exports = []
+    with open(exportfile) as f:
+        exportsraw = [line.strip() for line in f]
+    for line in exportsraw:
+        if not commentline.match(line) and not emptyline.match(line):
+            exports.append(line.split())
+    return exports
+    
+
 def getpermissionsbyhost(security):
     permissions = {}
     for element in security:
@@ -77,18 +89,8 @@ if __name__ == "__main__":
     else:
        exportfile = sys.argv[1]
        vserver = sys.argv[2]
-    
-    commentline = re.compile('^#.*')
-    emptyline = re.compile('^$')
-    exports = [] 
 
-    with open(exportfile) as f:
-        exportsraw = [line.strip() for line in f]
-
-    for line in exportsraw:
-        if not commentline.match(line) and not emptyline.match(line):
-            exports.append(line.split())
-
+    exports = getexports(exportfile)
     exportpolicys = {}
     permissions = {}
     for elem in sorted(exports):

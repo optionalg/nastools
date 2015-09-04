@@ -8,21 +8,6 @@ import socket
 import sys
 import nis
 
-def gethostsinsecurity(strsecurity):
-    hosts = []
-    elements = strsecurity.split(',')
-    for element in elements:
-        values = element.split('=')
-        if values[0] in ['ro', 'rw', 'root']:
-            if len(values) > 1:
-                hostsraw = values[1].split(':')
-                for host in hostsraw:
-                    if host not in hosts:
-                        hosts.append(host)
-            else:
-                raise Exception('#ERROR: Export Line not valid (%s)\n' % strsecurity)
-    return hosts
-
 def checknishosts(host):
     try:
         nisdomain = nis.get_default_domain()
@@ -59,6 +44,32 @@ def checkdns(host):
     else:
         return False
 
+def getexports(exportsfile):
+    commentline = re.compile('^#.*')
+    emptyline = re.compile('^$')
+    exports = []
+    with open(exportfile) as f:
+        exportsraw = [line.strip() for line in f]
+    for line in exportsraw:
+        if not commentline.match(line) and not emptyline.match(line):
+            exports.append(line)
+    return exports
+
+def gethostsinsecurity(strsecurity):
+    hosts = []
+    elements = strsecurity.split(',')
+    for element in elements:
+        values = element.split('=')
+        if values[0] in ['ro', 'rw', 'root']:
+            if len(values) > 1:
+                hostsraw = values[1].split(':')
+                for host in hostsraw:
+                    if host not in hosts:
+                        hosts.append(host)
+            else:
+                raise Exception('#ERROR: Export Line not valid (%s)\n' % strsecurity)
+    return hosts
+
 def printusage():
     print('Usage: %s EXPORTFILE' % sys.argv[0])
 
@@ -72,10 +83,9 @@ if __name__ == "__main__":
     else:
         exportfile = sys.argv[1]
 
-    commentline = re.compile('^#.*')
+    exports = getexports(exportfile)
     emptyline = re.compile('^$')
     exportsbyhost = {}
-    exports = []
     hosts = []
 
     with open(exportfile) as f:

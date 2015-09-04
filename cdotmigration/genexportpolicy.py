@@ -25,7 +25,6 @@ def getexports(exportsfile):
         if not commentline.match(line) and not emptyline.match(line):
             exports.append(line.split())
     return exports
-    
 
 def getpermissionsbyhost(security):
     permissions = {}

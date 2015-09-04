@@ -84,16 +84,8 @@ if __name__ == "__main__":
         exportfile = sys.argv[1]
 
     exports = getexports(exportfile)
-    emptyline = re.compile('^$')
     exportsbyhost = {}
     hosts = []
-
-    with open(exportfile) as f:
-        exportsraw = [line.strip() for line in f]
-
-    for line in exportsraw:
-        if not commentline.match(line) and not emptyline.match(line):
-            exports.append(line)
 
     for elem in sorted(exports):
         parts = elem.split()

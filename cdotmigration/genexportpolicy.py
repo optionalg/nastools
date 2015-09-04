@@ -79,13 +79,14 @@ if __name__ == "__main__":
        vserver = sys.argv[2]
     
     commentline = re.compile('^#.*')
+    emptyline = re.compile('^$')
     exports = [] 
 
     with open(exportfile) as f:
         exportsraw = [line.strip() for line in f]
 
     for line in exportsraw:
-        if not commentline.match(line):
+        if not commentline.match(line) and not emptyline.match(line):
             exports.append(line.split())
 
     exportpolicys = {}

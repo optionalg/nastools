@@ -26,6 +26,22 @@ def getexports(exportfile):
             exports.append(line.split())
     return exports
 
+def gethostsinsecurity(strsecurity):
+    hosts = []
+    elements = strsecurity.split(',')
+    for element in elements:
+        values = element.split('=')
+        if values[0] in ['ro', 'rw', 'root']:
+            if len(values) > 1:
+                hostsraw = values[1].split(':')
+                for host in hostsraw:
+                    if host not in hosts:
+                        hosts.append(host)
+            else:
+                if '0.0.0.0/0' not in hosts:
+                    hosts.append('0.0.0.0/0')
+    return hosts
+
 def getpermissionsbyhost(security):
     permissions = {}
     for element in security:
@@ -42,7 +58,7 @@ def getsecurity(strsecurity):
     for element in elements:
         values = element.split('=')
         if len(values) < 2:
-            raise Exception('ERROR: Export line not valid (%s)\n' % strsecurity)
+            security.append((values[0], ['0.0.0.0/0']))
         else:
             if values[0] == 'ro' or values[0] == 'rw' or values[0] == 'root':
                 security.append((values[0], values[1].split(':')))
@@ -54,6 +70,8 @@ def isvolume(strexport):
     return True
 
 def printexportpolicyrules(vserver, policyname, security):
+    rwexports = []
+    roexports = []
     lastexports = []
     for host in security:
         if 'rw' in security[host]:
@@ -71,7 +89,14 @@ def printexportpolicyrules(vserver, policyname, security):
         if 'lastindex' in security[host]:
             lastexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 9999' % (vserver, policyname, host, rorule, rwrule, superuser))
         else:
-            print('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
+            if rwrule == 'any':
+                rwexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
+            else:
+                roexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
+    for export in rwexports:
+        print(export)
+    for export in roexports:
+        print(export)
     for export in lastexports:
         print(export)
 
@@ -103,7 +128,11 @@ if __name__ == "__main__":
                 exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
             security = getpermissionsbyhost(getsecurity(elem[1]))
             if not permissions.has_key(volumename):
-                permissions[volumename] = {'0.0.0.0/0': ['ro', 'root', 'lastindex']}
+                hosts = gethostsinsecurity(elem[1])
+                perms = {}
+                for host in hosts:
+                    perms[host] = ['ro', 'root', 'lastindex']
+                permissions[volumename] = perms
             if permissions.has_key(policyname):
                 temp = permissions[policyname].copy()
                 temp.update(security)

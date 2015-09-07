@@ -46,7 +46,8 @@ simple rules:
 
 * policyname = vol + '_' + qtree
 * permissions will get aggregated
-* missing (volume) permissions will be added as 0.0.0.0/0
+* missing volume permissions will be added
+* permissions without hosts limitation will be transfered to network 0.0.0.0/0
 * errors will log to stderr
 * errors start with # to prevent accidential execution
 
@@ -68,14 +69,15 @@ output:
 
     # script output
     export-policy create -vserver vserver1 -policyname vol1
-    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.1 -protocol nfs -rorule any -rwrule never -superuser any
-    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 0.0.0.0/0 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 9999
+    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.1 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 9999
+    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.2 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 9999
+    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.3 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 9999
     export-policy create -vserver vserver1 -policyname vol1_qtree1
     export-policy rule create -vserver vserver1 -policyname vol1_qtree1 -clientmatch 192.168.1.1 -protocol nfs -rorule any -rwrule any -superuser any
     export-policy rule create -vserver vserver1 -policyname vol1_qtree1 -clientmatch 192.168.1.2 -protocol nfs -rorule any -rwrule any -superuser any
     export-policy rule create -vserver vserver1 -policyname vol1_qtree1 -clientmatch 192.168.1.3 -protocol nfs -rorule any -rwrule any -superuser any
     volume modify -vserver vserver1 -volume vol1 -policy vol1
-    qtree modify -vserver vserver1 -volume vol1 -qtree qtree1 -export-policy vol1_qtree1
+    qtree modify -vserver vserver1 -volume vol1 -qtree qtree1 -export-policy vol1_qtree
     
 ### usage
     ./genexportpolicy.py EXPORTFILE VSERVERNAME

@@ -46,10 +46,9 @@ def getpermissionsbyhost(security):
     permissions = {}
     for element in security:
         for host in element[1]:
-            if permissions.has_key(host):
-                permissions[host].append(element[0])
-            else:
-                permissions[host] = [element[0]]
+            if not permissions.has_key(host):
+                permissions[host] = []
+            permissions[host].append(element[0])
     return OrderedDict(sorted(permissions.items(), key=lambda t: t[0]))
 
 def getsecurity(strsecurity):
@@ -121,24 +120,25 @@ if __name__ == "__main__":
         try:
             policyname = getexportpolicy(elem[0])
             volumename = elem[0].split('/')[2]
+            security = getpermissionsbyhost(getsecurity(elem[1]))
+            hosts = gethostsinsecurity(elem[1])
             if isvolume(elem[0]):
                 exportpolicys[policyname] = 'volume modify -vserver %s -volume %s -policy %s' % (vserver, volumename, policyname)
+                if not permissions.has_key(policyname):
+                    permissions[policyname] = OrderedDict()
+                permissions[policyname].update(getpermissionsbyhost([('ro',hosts), ('root', hosts), ('lastindex', hosts)]))
             else:
                 qtree = elem[0].split('/')[3]
                 exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
-            security = getpermissionsbyhost(getsecurity(elem[1]))
-            if not permissions.has_key(volumename):
-                hosts = gethostsinsecurity(elem[1])
-                perms = {}
-                for host in hosts:
-                    perms[host] = ['ro', 'root', 'lastindex']
-                permissions[volumename] = perms
-            if permissions.has_key(policyname):
-                temp = permissions[policyname].copy()
-                temp.update(security)
-                permissions[policyname] = temp
-            else:
-                permissions[policyname] = security  
+                if not permissions.has_key(volumename):
+                    permissions[volumename] = OrderedDict()
+                permissions[volumename].update(getpermissionsbyhost([('ro',hosts), ('root', hosts), ('lastindex', hosts)]))
+                if permissions.has_key(policyname):
+                    temp = permissions[policyname].copy()
+                    temp.update(security)
+                    permissions[policyname] = temp
+                else:
+                    permissions[policyname] = security
         except Exception as e:
             sys.stderr.write('#%s\n' % elem)
             sys.stderr.write('#%s\n' % str(e))
@@ -147,4 +147,3 @@ if __name__ == "__main__":
         printexportpolicyrules(vserver, policyname, permissions[policyname])
     for exportpolicy in exportpolicys:
         print(exportpolicys[exportpolicy])
-

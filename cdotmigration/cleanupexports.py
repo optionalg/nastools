@@ -3,8 +3,25 @@
 __author__ = 'sstreiner'
 
 import os.path
+import nis
 import re
+import socket
 import sys
+
+
+def checkdns(host):
+    try:
+        ipaddrs = []
+        dnsraw = socket.getaddrinfo(host, 0)
+        for addr in dnsraw:
+            ipaddrs.append(addr[-1][0])
+    except Exception as e:
+        ipaddrs = []
+    if ipaddrs:
+        return True
+    else:
+        return False
+
 
 def checknisnetgroup(netgroup):
     try:
@@ -16,24 +33,58 @@ def checknisnetgroup(netgroup):
     else:
         return False
 
+
+def checknishosts(host):
+    try:
+        nisdomain = nis.get_default_domain()
+        hostsmatch = nis.match(host, 'hosts')
+        if not hostsmatch:
+            hostsmatch = nis.match(host + '.' + nisdomain, 'hosts')
+    except Exception as e:
+        hostsmatch = []
+    if hostsmatch:
+        return True
+    else:
+        return False
+
+
 def formatsecurity(strsecurity):
-    securityline = ''
+    securityline = '-'
+    strsecurity = re.sub(r'^-', '', strsecurity)
     elements = strsecurity.split(',')
+    regexip = re.compile('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+    regexnet = re.compile('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$')
+    regexat = re.compile('^@')
     for element in elements:
         values = element.split('=')
         if values[0] in ['ro', 'rw', 'root']:
+            securityline += values[0]
             if len(values) > 1:
+                securityline += '='
                 hostsraw = values[1].split(':')
                 for host in hostsraw:
-                    if host not in hosts:
-                        hosts.append(host)
-            else:
-                securityline += values[0] + '=0.0.0.0/0'
-        elif values[0] in ['actual', 'anon', 'nosuid', 'sec']:
-    return hosts
-    return strsecurity
+                    if regexat.match(host):
+                        host = host[1:]
+                    if checknisnetgroup(host):
+                        securityline += '@' + host + ':'
+                    elif checknishosts(host) or checkdns(host):
+                        securityline += host + ':'
+                    elif regexip.match(host) or regexnet.match(host):
+                        securityline += host + ':'
+                    else:
+                        sys.stderr.write("#ERROR: removed host/netgroup %s from security!\n" % host)
+                securityline = re.sub(r':$', '', securityline)
+            #else:
+            #    securityline += '0.0.0.0/0'
+        else:
+            securityline += values[0]
+            if values[1]:
+                securityline += '=' + values[1]
+        securityline += ','
+    securityline = re.sub(r',$', '', securityline)
+    return securityline
 
-def getexports(exportfile):
+def getexportswithcomments(exportfile):
     commentline = re.compile('^#.*')
     emptyline = re.compile('^$')
     exports = []
@@ -41,6 +92,8 @@ def getexports(exportfile):
         exportsraw = [line.strip() for line in f]
     for line in exportsraw:
         if not commentline.match(line) and not emptyline.match(line):
+            exports.append(line.split())
+        elif commentline.match(line):
             exports.append(line)
     return exports
 
@@ -57,5 +110,9 @@ if __name__ == "__main__":
     else:
         exportfile = sys.argv[1]
 
-    exports = getexports(exportfile)
-    print(exports)
+    exports = getexportswithcomments(exportfile)
+    for export in exports:
+        if isinstance(export, list):
+            print('%s %s %s' % (export[0], '\t' * abs(6 - export[0].count('/')), formatsecurity(export[1])))
+        else:
+            print(export)

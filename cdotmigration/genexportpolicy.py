@@ -57,7 +57,10 @@ def getpermissionsbyhost(security):
 def getsecurity(strsecurity):
     security = []
     elements = strsecurity.split(',')
-    if 'rw' not in elements and 'ro' not in elements:
+    if not strsecurity.find('rw,') and \
+            not strsecurity.find('rw=') and \
+            not strsecurity.find('ro,') and \
+            not strsecurity.find('ro='):
         security.append(('rw', ['0.0.0.0/0']))
     for element in elements:
         values = element.split('=')

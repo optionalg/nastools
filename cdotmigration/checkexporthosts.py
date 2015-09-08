@@ -34,7 +34,7 @@ def checknisnetgroup(netgroup):
 def checkdns(host):
     try:
         ipaddrs = []
-        dnsraw = socket.getaddrinfo(host, 0)
+        dnsraw = socket.gethostbyaddr(host)
         for addr in dnsraw:
             ipaddrs.append(addr[-1][0])
     except Exception as e:

@@ -12,7 +12,7 @@ import sys
 def checkdns(host):
     try:
         ipaddrs = []
-        dnsraw = socket.getaddrinfo(host, 0)
+        dnsraw = socket.gethostbyaddr(host)
         for addr in dnsraw:
             ipaddrs.append(addr[-1][0])
     except Exception as e:
@@ -65,6 +65,7 @@ def formatsecurity(strsecurity):
                 for host in hostsraw:
                     if regexat.match(host):
                         host = host[1:]
+
                     if checknisnetgroup(host):
                         securityline += '@' + host + ':'
                     elif checknishosts(host) or checkdns(host):
@@ -74,8 +75,6 @@ def formatsecurity(strsecurity):
                     else:
                         sys.stderr.write("#ERROR: removed host/netgroup %s from security!\n" % host)
                 securityline = re.sub(r':$', '', securityline)
-            #else:
-            #    securityline += '0.0.0.0/0'
         else:
             securityline += values[0]
             if values[1]:
@@ -116,3 +115,4 @@ if __name__ == "__main__":
             print('%s %s %s' % (export[0], '\t' * abs(6 - export[0].count('/')), formatsecurity(export[1])))
         else:
             print(export)
+

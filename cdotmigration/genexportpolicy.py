@@ -58,7 +58,6 @@ def getsecurity(strsecurity):
         values = element.split('=')
         if len(values) < 2:
             security.append((values[0], ['0.0.0.0/0']))
-            security.append(('lastindex', ['0.0.0.0/0']))
         else:
             if values[0] == 'ro' or values[0] == 'rw' or values[0] == 'root':
                 security.append((values[0], values[1].split(':')))
@@ -72,7 +71,7 @@ def isvolume(strexport):
 def printexportpolicyrules(vserver, policyname, security):
     rwexports = []
     roexports = []
-    lastexports = []
+    allnetsexports = []
     for host in security:
         if 'rw' in security[host]:
             rwrule = 'any'
@@ -86,8 +85,8 @@ def printexportpolicyrules(vserver, policyname, security):
             superuser = 'any'
         else:
             superuser = 'none'
-        if 'lastindex' in security[host]:
-            lastexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 1000' % (vserver, policyname, host, rorule, rwrule, superuser))
+        if host == '0.0.0.0/0':
+            allnetsexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 1000' % (vserver, policyname, host, rorule, rwrule, superuser))
         else:
             if rwrule == 'any':
                 rwexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
@@ -97,7 +96,7 @@ def printexportpolicyrules(vserver, policyname, security):
         print(export)
     for export in roexports:
         print(export)
-    for export in lastexports:
+    for export in allnetsexports:
         print(export)
 
 def printusage():

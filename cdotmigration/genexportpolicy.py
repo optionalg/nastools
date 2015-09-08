@@ -7,13 +7,13 @@ import re
 import sys
 from collections import OrderedDict
 
+
 def getexportpolicy(strexport):
     exportraw = strexport.split('/')
     if isvolume(strexport):
-        policyname = exportraw[2]
-    else:
-        policyname = exportraw[2] + '_' + exportraw[3]
-    return policyname
+        return exportraw[2]
+    return exportraw[2] + '_' + exportraw[3]
+
 
 def getexports(exportfile):
     commentline = re.compile('^#.*')
@@ -25,6 +25,7 @@ def getexports(exportfile):
         if not commentline.match(line) and not emptyline.match(line):
             exports.append(line.split())
     return exports
+
 
 def gethostsinsecurity(strsecurity):
     hosts = []
@@ -42,19 +43,21 @@ def gethostsinsecurity(strsecurity):
                     hosts.append('0.0.0.0/0')
     return hosts
 
+
 def getpermissionsbyhost(security):
     permissions = {}
     for element in security:
         for host in element[1]:
-            if not permissions.has_key(host):
+            if host not in permissions:
                 permissions[host] = []
             permissions[host].append(element[0])
     return OrderedDict(sorted(permissions.items(), key=lambda t: t[0]))
 
+
 def getsecurity(strsecurity):
     security = []
     elements = strsecurity.split(',')
-    if not 'rw' in elements and not 'ro' in elements:
+    if 'rw' not in elements and 'ro' not in elements:
         security.append(('rw', ['0.0.0.0/0']))
     for element in elements:
         values = element.split('=')
@@ -65,10 +68,12 @@ def getsecurity(strsecurity):
                 security.append((values[0], values[1].split(':')))
     return security
 
+
 def isvolume(strexport):
     if len(strexport.split('/')) > 3:
         return False
     return True
+
 
 def printexportpolicyrules(vserver, policyname, security):
     rwexports = []
@@ -88,12 +93,21 @@ def printexportpolicyrules(vserver, policyname, security):
         else:
             superuser = 'none'
         if host == '0.0.0.0/0':
-            allnetsexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 1000' % (vserver, policyname, host, rorule, rwrule, superuser))
+            allnetsexports.append(
+                'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                '-rwrule %s -superuser %s -ruleindex 1000' % (
+                    vserver, policyname, host, rorule, rwrule, superuser))
         else:
             if rwrule == 'any':
-                rwexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
+                rwexports.append(
+                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                    '-rwrule %s -superuser %s' % (
+                        vserver, policyname, host, rorule, rwrule, superuser))
             else:
-                roexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 500' % (vserver, policyname, host, rorule, rwrule, superuser))
+                roexports.append(
+                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                    '-rwrule %s -superuser %s -ruleindex 500' % (
+                        vserver, policyname, host, rorule, rwrule, superuser))
     for export in rwexports:
         print(export)
     for export in roexports:
@@ -101,29 +115,32 @@ def printexportpolicyrules(vserver, policyname, security):
     for export in allnetsexports:
         print(export)
 
+
 def printusage():
     print('Usage: %s EXPORTFILE VSERVER' % sys.argv[0])
 
+
 def updatesecurity(securityold, securitynew):
     for host in securitynew:
-        if securityold.has_key(host):
+        if host in securityold:
             for security in securitynew[host]:
-                if not security in securityold[host]:
+                if security not in securityold[host]:
                     securityold[host].append(security)
         else:
             securityold[host] = securitynew[host]
     return securityold
 
+
 if __name__ == "__main__":
     if not len(sys.argv) > 2:
-       printusage()
-       sys.exit(1)
+        printusage()
+        sys.exit(1)
     if not os.path.isfile(sys.argv[1]):
-       sys.stderr.write('#ERROR: %s is not a file!\n' % sys.argv[1])
-       sys.exit(1)
+        sys.stderr.write('#ERROR: %s is not a file!\n' % sys.argv[1])
+        sys.exit(1)
     else:
-       exportfile = sys.argv[1]
-       vserver = sys.argv[2]
+        exportfile = sys.argv[1]
+        vserver = sys.argv[2]
 
     exports = getexports(exportfile)
     exportpolicys = {}
@@ -135,19 +152,23 @@ if __name__ == "__main__":
             security = getpermissionsbyhost(getsecurity(elem[1]))
             hosts = gethostsinsecurity(elem[1])
             if isvolume(elem[0]):
-                exportpolicys[policyname] = 'volume modify -vserver %s -volume %s -policy %s' % (vserver, volumename, policyname)
-                if not permissions.has_key(policyname):
+                exportpolicys[policyname] = 'volume modify -vserver %s -volume %s -policy %s' % (
+                    vserver, volumename, policyname)
+                if policyname not in permissions:
                     permissions[policyname] = security
                 else:
                     permissions[policyname].update(updatesecurity(permissions[policyname], security))
             else:
                 qtree = elem[0].split('/')[3]
-                if not permissions.has_key(volumename):
+                if volumename not in permissions:
                     permissions[volumename] = OrderedDict()
-                    exportpolicys[volumename] = 'volume modify -vserver %s -volume %s -policy %s' % (vserver, volumename, volumename)
-                permissions[volumename].update(updatesecurity(permissions[volumename], getpermissionsbyhost([('ro',hosts), ('root', hosts)])))
-                exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
-                if not permissions.has_key(policyname):
+                    exportpolicys[volumename] = 'volume modify -vserver %s -volume %s -policy %s' % (
+                        vserver, volumename, volumename)
+                permissions[volumename].update(
+                    updatesecurity(permissions[volumename], getpermissionsbyhost([('ro', hosts), ('root', hosts)])))
+                exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (
+                    vserver, volumename, qtree, policyname)
+                if policyname not in permissions:
                     permissions[policyname] = security
                 else:
                     permissions[policyname].update(updatesecurity(permissions[policyname], security))
@@ -159,4 +180,3 @@ if __name__ == "__main__":
         printexportpolicyrules(vserver, policyname, permissions[policyname])
     for exportpolicy in exportpolicys:
         print(exportpolicys[exportpolicy])
-

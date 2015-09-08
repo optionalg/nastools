@@ -54,6 +54,8 @@ def getpermissionsbyhost(security):
 def getsecurity(strsecurity):
     security = []
     elements = strsecurity.split(',')
+    if not 'rw' in elements and not 'ro' in elements:
+        security.append(('rw', ['0.0.0.0/0']))
     for element in elements:
         values = element.split('=')
         if len(values) < 2:
@@ -140,10 +142,11 @@ if __name__ == "__main__":
                     permissions[policyname].update(updatesecurity(permissions[policyname], security))
             else:
                 qtree = elem[0].split('/')[3]
-                exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
                 if not permissions.has_key(volumename):
                     permissions[volumename] = OrderedDict()
+                    exportpolicys[volumename] = 'volume modify -vserver %s -volume %s -policy %s' % (vserver, volumename, volumename)
                 permissions[volumename].update(updatesecurity(permissions[volumename], getpermissionsbyhost([('ro',hosts), ('root', hosts)])))
+                exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
                 if not permissions.has_key(policyname):
                     permissions[policyname] = security
                 else:

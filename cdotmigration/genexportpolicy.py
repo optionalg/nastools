@@ -58,6 +58,7 @@ def getsecurity(strsecurity):
         values = element.split('=')
         if len(values) < 2:
             security.append((values[0], ['0.0.0.0/0']))
+            security.append(('lastindex', ['0.0.0.0/0']))
         else:
             if values[0] == 'ro' or values[0] == 'rw' or values[0] == 'root':
                 security.append((values[0], values[1].split(':')))
@@ -86,12 +87,12 @@ def printexportpolicyrules(vserver, policyname, security):
         else:
             superuser = 'none'
         if 'lastindex' in security[host]:
-            lastexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 9999' % (vserver, policyname, host, rorule, rwrule, superuser))
+            lastexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 1000' % (vserver, policyname, host, rorule, rwrule, superuser))
         else:
             if rwrule == 'any':
                 rwexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
             else:
-                roexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s' % (vserver, policyname, host, rorule, rwrule, superuser))
+                roexports.append('export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s -rwrule %s -superuser %s -ruleindex 500' % (vserver, policyname, host, rorule, rwrule, superuser))
     for export in rwexports:
         print(export)
     for export in roexports:
@@ -101,6 +102,16 @@ def printexportpolicyrules(vserver, policyname, security):
 
 def printusage():
     print('Usage: %s EXPORTFILE VSERVER' % sys.argv[0])
+
+def updatesecurity(securityold, securitynew):
+    for host in securitynew:
+        if securityold.has_key(host):
+            for security in securitynew[host]:
+                if not security in securityold[host]:
+                    securityold[host].append(security)
+        else:
+            securityold[host] = securitynew[host]
+    return securityold
 
 if __name__ == "__main__":
     if not len(sys.argv) > 2:
@@ -125,20 +136,19 @@ if __name__ == "__main__":
             if isvolume(elem[0]):
                 exportpolicys[policyname] = 'volume modify -vserver %s -volume %s -policy %s' % (vserver, volumename, policyname)
                 if not permissions.has_key(policyname):
-                    permissions[policyname] = OrderedDict()
-                permissions[policyname].update(getpermissionsbyhost([('ro',hosts), ('root', hosts), ('lastindex', hosts)]))
+                    permissions[policyname] = security
+                else:
+                    permissions[policyname].update(updatesecurity(permissions[policyname], security))
             else:
                 qtree = elem[0].split('/')[3]
                 exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (vserver, volumename, qtree, policyname)
                 if not permissions.has_key(volumename):
                     permissions[volumename] = OrderedDict()
-                permissions[volumename].update(getpermissionsbyhost([('ro',hosts), ('root', hosts), ('lastindex', hosts)]))
-                if permissions.has_key(policyname):
-                    temp = permissions[policyname].copy()
-                    temp.update(security)
-                    permissions[policyname] = temp
-                else:
+                permissions[volumename].update(updatesecurity(permissions[volumename], getpermissionsbyhost([('ro',hosts), ('root', hosts)])))
+                if not permissions.has_key(policyname):
                     permissions[policyname] = security
+                else:
+                    permissions[policyname].update(updatesecurity(permissions[policyname], security))
         except Exception as e:
             sys.stderr.write('#%s\n' % elem)
             sys.stderr.write('#%s\n' % str(e))

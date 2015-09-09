@@ -168,7 +168,7 @@ if __name__ == "__main__":
                     exportpolicys[volumename] = 'volume modify -vserver %s -volume %s -policy %s' % (
                         vserver, volumename, volumename)
                 permissions[volumename].update(
-                    updatesecurity(permissions[volumename], getpermissionsbyhost([('ro', hosts), ('root', hosts)])))
+                    updatesecurity(permissions[volumename], getpermissionsbyhost([('ro', hosts)])))
                 exportpolicys[policyname] = 'qtree modify -vserver %s -volume %s -qtree %s -export-policy %s' % (
                     vserver, volumename, qtree, policyname)
                 if policyname not in permissions:

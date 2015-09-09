@@ -66,6 +66,7 @@ def formatsecurity(strsecurity):
     strsecurity = re.sub(r'^-', '', strsecurity)
     elements = strsecurity.split(',')
     regexat = re.compile('^@')
+    regexnohosts = re.compile('^.*=$')
     for element in elements:
         values = element.split('=')
         if values[0] in ['ro', 'rw', 'root']:
@@ -87,6 +88,8 @@ def formatsecurity(strsecurity):
                         securityline += host + ':'
                     else:
                         sys.stderr.write("#ERROR: removed host/netgroup %s from security!\n" % host)
+                if regexnohosts.match(securityline):
+                    securityline = securityline[:-1]
                 securityline = re.sub(r':$', '', securityline)
         else:
             securityline += values[0]

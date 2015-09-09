@@ -11,15 +11,11 @@ import sys
 
 def checkdns(host):
     try:
-        ipaddrs = []
         dnsraw = socket.gethostbyaddr(host)
-        for addr in dnsraw:
-            ipaddrs.append(addr[-1][0])
-    except:
-        ipaddrs = []
-    if ipaddrs:
-        return True
-    else:
+        dns = dnsraw[2]
+        if dns:
+            return True
+    except Exception as e:
         return False
 
 
@@ -81,7 +77,9 @@ def formatsecurity(strsecurity):
                     if regexat.match(host):
                         host = host[1:]
 
-                    if checknisnetgroup(host):
+                    if checkdns(host):
+                        securityline += host + ':'
+                    elif checknisnetgroup(host):
                         securityline += '@' + host + ':'
                     elif checknishosts(host) or checkdns(host):
                         securityline += host + ':'
@@ -92,7 +90,7 @@ def formatsecurity(strsecurity):
                 securityline = re.sub(r':$', '', securityline)
         else:
             securityline += values[0]
-            if values[1]:
+            if len(values) > 1 and values[1]:
                 securityline += '=' + values[1]
         securityline += ','
     securityline = re.sub(r',$', '', securityline)

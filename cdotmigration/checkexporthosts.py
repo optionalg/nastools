@@ -11,15 +11,11 @@ import nis
 
 def checkdns(host):
     try:
-        ipaddrs = []
         dnsraw = socket.gethostbyaddr(host)
-        for addr in dnsraw:
-            ipaddrs.append(addr[-1][0])
-    except:
-        ipaddrs = []
-    if ipaddrs:
-        return True
-    else:
+        dns = dnsraw[2]
+        if dns:
+            return True
+    except Exception as e:
         return False
 
 

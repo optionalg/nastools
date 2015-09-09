@@ -23,6 +23,23 @@ def checkdns(host):
         return False
 
 
+def checkipaddr(host):
+    try:
+        socket.inet_aton(host)
+        return True
+    except:
+        return False
+
+
+def checknetwork(host):
+    address = host.split('/')
+    if len(address) > 1:
+        if checkipaddr(address[0]) and int(address[1]) >= 0 and int(address[1]) <= 32:
+            return True
+    else:
+        return False
+
+
 def checknisnetgroup(netgroup):
     try:
         netgroupmatch = nis.match(netgroup, 'netgroup')
@@ -52,8 +69,6 @@ def formatsecurity(strsecurity):
     securityline = '-'
     strsecurity = re.sub(r'^-', '', strsecurity)
     elements = strsecurity.split(',')
-    regexip = re.compile('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    regexnet = re.compile('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}$')
     regexat = re.compile('^@')
     for element in elements:
         values = element.split('=')
@@ -70,7 +85,7 @@ def formatsecurity(strsecurity):
                         securityline += '@' + host + ':'
                     elif checknishosts(host) or checkdns(host):
                         securityline += host + ':'
-                    elif regexip.match(host) or regexnet.match(host):
+                    elif checkipaddr(host) or checknetwork(host):
                         securityline += host + ':'
                     else:
                         sys.stderr.write("#ERROR: removed host/netgroup %s from security!\n" % host)
@@ -115,4 +130,3 @@ if __name__ == "__main__":
             print('%s %s %s' % (export[0], '\t' * abs(6 - export[0].count('/')), formatsecurity(export[1])))
         else:
             print(export)
-

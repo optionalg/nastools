@@ -129,7 +129,11 @@ if __name__ == "__main__":
             else:
                 exportsbyhost[host].append(exportpath)
 
+    regexat = re.compile('^@')
     for host in hosts:
+        if regexat.match(host):
+            host = host[1:]
+            
         if checknishosts(host):
             hostexists = True
         elif checknisnetgroup(host):

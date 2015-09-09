@@ -8,28 +8,6 @@ import socket
 import sys
 import nis
 
-def checknishosts(host):
-    try:
-        nisdomain = nis.get_default_domain()
-        hostsmatch = nis.match(host, 'hosts')
-        if not hostsmatch:
-            hostsmatch = nis.match(host + '.' + nisdomain, 'hosts')
-    except Exception as e:
-        hostsmatch = []
-    if hostsmatch:
-        return True
-    else:
-        return False
-
-def checknisnetgroup(netgroup):
-    try:
-        netgroupmatch = nis.match(netgroup, 'netgroup')
-    except Exception as e:
-        netgroupmatch = []
-    if netgroupmatch:
-        return True
-    else:
-        return False
 
 def checkdns(host):
     try:
@@ -44,6 +22,49 @@ def checkdns(host):
     else:
         return False
 
+
+def checkipaddr(host):
+    try:
+        socket.inet_aton(host)
+        return True
+    except:
+        return False
+
+
+def checknetwork(host):
+    address = host.split('/')
+    if len(address) > 1:
+        if checkipaddr(address[0]) and int(address[1]) >= 0 and int(address[1]) <= 32:
+            return True
+    else:
+        return False
+
+
+def checknishosts(host):
+    try:
+        nisdomain = nis.get_default_domain()
+        hostsmatch = nis.match(host, 'hosts')
+        if not hostsmatch:
+            hostsmatch = nis.match(host + '.' + nisdomain, 'hosts')
+    except Exception as e:
+        hostsmatch = []
+    if hostsmatch:
+        return True
+    else:
+        return False
+
+
+def checknisnetgroup(netgroup):
+    try:
+        netgroupmatch = nis.match(netgroup, 'netgroup')
+    except Exception as e:
+        netgroupmatch = []
+    if netgroupmatch:
+        return True
+    else:
+        return False
+
+
 def getexports(exportfile):
     commentline = re.compile('^#.*')
     emptyline = re.compile('^$')
@@ -54,6 +75,7 @@ def getexports(exportfile):
         if not commentline.match(line) and not emptyline.match(line):
             exports.append(line)
     return exports
+
 
 def gethostsinsecurity(strsecurity):
     hosts = []
@@ -70,8 +92,10 @@ def gethostsinsecurity(strsecurity):
                 raise Exception('#ERROR: Export Line not valid (%s)\n' % strsecurity)
     return hosts
 
+
 def printusage():
     print('Usage: %s EXPORTFILE' % sys.argv[0])
+
 
 if __name__ == "__main__":
     if not len(sys.argv) > 1:
@@ -111,6 +135,10 @@ if __name__ == "__main__":
         elif checknisnetgroup(host):
             hostexists = True
         elif checkdns(host):
+            hostexists = True
+        elif checkipaddr(host):
+            hostexists = True
+        elif checknetwork(host):
             hostexists = True
         else:
             hostexists = False

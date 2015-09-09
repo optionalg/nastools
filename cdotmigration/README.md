@@ -51,7 +51,39 @@ simple rules:
 
 samples/wrong_exports:
 
-    
+    # /etc/exports file
+    /vol/vol1/qtree_dns     -sec=sys,ro=google.com:google.asdf,root=google.com:google.asdf
+    /vol/vol1/qtree_ip      -sec=sys,ro=192.168.1.1:192.168.256.1:192.168.1,root=192.168.1.1:192.168.256.1:192.168.1
+    # need to configure nis (check will not work without nis groups)
+    /vol/vol1/qtree_nis     -sec=sys,ro=nisgroup_ok:nisgroup_missing,root=nisgroup_ok:nisgroup_missing 
+
+run script:
+
+    # run script
+    ./cleanupexports.py samples/exports_wrong
+
+output without NIS:
+
+    # /etc/exports file
+    /vol/vol1/qtree_dns    -sec=sys,ro=google.com,root=google.com
+    /vol/vol1/qtree_ip     -sec=sys,ro=192.168.1.1:192.168.1,root=192.168.1.1:192.168.1
+    # need to configure nis (check will not work without nis groups)
+    /vol/vol1/qtree_nis    -sec=sys,ro,root
+
+output with correct NIS groups/setup:
+
+    # /etc/exports file
+    /vol/vol1/qtree_dns    -sec=sys,ro=google.com,root=google.com
+    /vol/vol1/qtree_ip     -sec=sys,ro=192.168.1.1:192.168.1,root=192.168.1.1:192.168.1
+    # need to configure nis (check will not work without nis groups)
+    /vol/vol1/qtree_nis    -sec=sys,ro=@nisgroup_ok,root=@nisgroup_ok
+
+### usage
+
+    ./cleanupexports.py EXPORTFILE
+
+### TODOs
+* missing unittests
 
 
 ## genexportpolicy.py

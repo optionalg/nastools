@@ -130,15 +130,15 @@ if __name__ == "__main__":
         if regexat.match(host):
             host = host[1:]
 
-        if checknishosts(host):
+        if checkipaddr(host):
+            hostexists = True
+        elif checknetwork(host):
+            hostexists = True
+        elif checknishosts(host):
             hostexists = True
         elif checknisnetgroup(host):
             hostexists = True
         elif checkdns(host):
-            hostexists = True
-        elif checkipaddr(host):
-            hostexists = True
-        elif checknetwork(host):
             hostexists = True
         else:
             hostexists = False

@@ -78,13 +78,11 @@ def formatsecurity(strsecurity):
                     if regexat.match(host):
                         host = host[1:]
 
-                    if checkdns(host):
+                    if checkipaddr(host) or checknetwork(host):
                         securityline += host + ':'
                     elif checknisnetgroup(host):
                         securityline += '@' + host + ':'
                     elif checknishosts(host) or checkdns(host):
-                        securityline += host + ':'
-                    elif checkipaddr(host) or checknetwork(host):
                         securityline += host + ':'
                     else:
                         sys.stderr.write("#ERROR: removed host/netgroup %s from security!\n" % host)

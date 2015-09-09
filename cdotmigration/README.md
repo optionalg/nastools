@@ -34,7 +34,24 @@ output:
     ./checkexporthosts.py EXPORTFILE
 
 ### TODOs
-* missing unittests    
+* missing unittests
+
+
+## cleanupexports.py
+
+The cleanupexports.py script sanitizes a NFS export file (/etc/exports) for later usage with genexportpolicy.py.
+
+simple rules:
+
+* remove non valid (syntax,missing) ips,networks,hosts,netgroups
+* @ will be added in front of netgroups
+* errors start with # to prevents accidential execution
+
+### sample
+
+samples/wrong_exports:
+
+    
 
 
 ## genexportpolicy.py
@@ -69,8 +86,8 @@ output:
     # script output
     export-policy create -vserver vserver1 -policyname vol1
     export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.1 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 500
-    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.2 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 500
-    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.3 -protocol nfs -rorule any -rwrule never -superuser any -ruleindex 500
+    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.2 -protocol nfs -rorule any -rwrule never -superuser none -ruleindex 500
+    export-policy rule create -vserver vserver1 -policyname vol1 -clientmatch 192.168.1.3 -protocol nfs -rorule any -rwrule never -superuser none -ruleindex 500
     export-policy create -vserver vserver1 -policyname vol1_qtree1
     export-policy rule create -vserver vserver1 -policyname vol1_qtree1 -clientmatch 192.168.1.1 -protocol nfs -rorule any -rwrule any -superuser any
     export-policy rule create -vserver vserver1 -policyname vol1_qtree1 -clientmatch 192.168.1.2 -protocol nfs -rorule any -rwrule any -superuser any

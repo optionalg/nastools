@@ -34,7 +34,6 @@ output:
     ./checkexporthosts.py EXPORTFILE
 
 ### TODOs
-* missing support for @ notation for netgroups
 * missing unittests    
 
 

@@ -98,6 +98,7 @@ def formatsecurity(strsecurity):
     securityline = re.sub(r',$', '', securityline)
     return securityline
 
+
 def getexportswithcomments(exportfile):
     commentline = re.compile('^#.*')
     emptyline = re.compile('^$')
@@ -111,8 +112,10 @@ def getexportswithcomments(exportfile):
             exports.append(line)
     return exports
 
+
 def printusage():
     print('Usage: %s EXPORTFILE' % sys.argv[0])
+
 
 if __name__ == "__main__":
     if not len(sys.argv) > 1:

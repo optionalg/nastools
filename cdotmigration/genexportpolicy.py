@@ -97,18 +97,18 @@ def printexportpolicyrules(vserver, policyname, security):
             superuser = 'none'
         if host == '0.0.0.0/0':
             allnetsexports.append(
-                'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s '
                 '-rwrule %s -superuser %s -ruleindex 1000' % (
                     vserver, policyname, host, rorule, rwrule, superuser))
         else:
             if rwrule == 'any':
                 rwexports.append(
-                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s '
                     '-rwrule %s -superuser %s' % (
                         vserver, policyname, host, rorule, rwrule, superuser))
             else:
                 roexports.append(
-                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s ' \
+                    'export-policy rule create -vserver %s -policyname %s -clientmatch %s -protocol nfs -rorule %s '
                     '-rwrule %s -superuser %s -ruleindex 500' % (
                         vserver, policyname, host, rorule, rwrule, superuser))
     for export in rwexports:

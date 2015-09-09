@@ -15,7 +15,7 @@ def checkdns(host):
         dnsraw = socket.gethostbyaddr(host)
         for addr in dnsraw:
             ipaddrs.append(addr[-1][0])
-    except Exception as e:
+    except:
         ipaddrs = []
     if ipaddrs:
         return True
@@ -34,7 +34,7 @@ def checkipaddr(host):
 def checknetwork(host):
     address = host.split('/')
     if len(address) > 1:
-        if checkipaddr(address[0]) and int(address[1]) >= 0 and int(address[1]) <= 32:
+        if checkipaddr(address[0]) and 0 <= int(address[1]) <= 32:
             return True
     else:
         return False
@@ -43,7 +43,7 @@ def checknetwork(host):
 def checknisnetgroup(netgroup):
     try:
         netgroupmatch = nis.match(netgroup, 'netgroup')
-    except Exception as e:
+    except:
         netgroupmatch = []
     if netgroupmatch:
         return True
@@ -57,7 +57,7 @@ def checknishosts(host):
         hostsmatch = nis.match(host, 'hosts')
         if not hostsmatch:
             hostsmatch = nis.match(host + '.' + nisdomain, 'hosts')
-    except Exception as e:
+    except:
         hostsmatch = []
     if hostsmatch:
         return True

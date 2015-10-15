@@ -152,7 +152,10 @@ def gethostsinsecurity(strsecurity):
                     if host not in hosts:
                         hosts.append(host)
             else:
-                raise Exception('#ERROR: Export Line not valid (%s)\n' % strsecurity)
+                host = '0.0.0.0'
+                if host not in hosts:
+                    hosts.append(host)
+                raise Exception('Export Line not valid (%s)\n' % strsecurity)
     return hosts
 
 

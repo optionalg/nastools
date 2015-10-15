@@ -34,7 +34,7 @@ if __name__ == "__main__":
         try:
             exporthosts = libcdot.gethostsinsecurity(elem[1])
         except Exception as e:
-            sys.stderr.write("%s\n" % str(e))
+            sys.stderr.write("#ERROR: %s %s\n" % (exportpath, str(e)))
         for host in exporthosts:
             if host not in hosts:
                 hosts.append(host)

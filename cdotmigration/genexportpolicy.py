@@ -30,7 +30,7 @@ if __name__ == "__main__":
         try:
             policyname = libcdot.getexportpolicy(elem[0])
             volumename = elem[0].split('/')[2]
-            security = libcdot.getpermissionsbyhost(libcdot.getsecurity(elem[1]))
+            security = libcdot.getpermissionsbyhost(libcdot.getsecurityng(elem[1]))
             hosts = libcdot.gethostsinsecurity(elem[1])
             if libcdot.isvolume(elem[0]):
                 exportpolicys[policyname] = 'volume modify -vserver %s -volume %s -policy %s' % (
@@ -54,8 +54,7 @@ if __name__ == "__main__":
                 else:
                     permissions[policyname].update(libcdot.updatesecurity(permissions[policyname], security))
         except Exception as e:
-            sys.stderr.write('#%s\n' % elem)
-            sys.stderr.write('#%s\n' % str(e))
+            sys.stderr.write('#ERROR: %s %s\n' % (elem, str(e)))
     for policyname in sorted(permissions):
         print('export-policy create -vserver %s -policyname %s' % (vserver, policyname))
         libcdot.printexportpolicyrules(vserver, policyname, permissions[policyname])
